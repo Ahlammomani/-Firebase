@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <header>
+        <h1>Fake Store API - Product Management</h1>
+      </header>
+      <main id="card">
+      </main>
+      <form id="add-product-form">
+        <input type="text" id="product-title" placeholder="Title" required>
+        <input type="number" id="product-price" placeholder="Price" required>
+        <textarea id="product-description" placeholder="Description" required></textarea>
+        <input type="url" id="product-image" placeholder="Image URL" required>
+        <button type="submit">Add Product</button>
+      </form>
+      
+      <footer>
+        <p>&copy; 2025 Fake Store API. All Rights Reserved.</p>
+      </footer>
+     
+      <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+          apiKey: "AIzaSyAWA0fb0N6xTibHJbsfCChIh1DOcE2w5d8",
+          authDomain: "fir-41c51.firebaseapp.com",
+          projectId: "fir-41c51",
+          storageBucket: "fir-41c51.firebasestorage.app",
+          messagingSenderId: "735192833642",
+          appId: "1:735192833642:web:aef6029ada1df53c547413",
+          measurementId: "G-4XRZDM53ED"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+
+        const productArray = [];
+        //fatch
+        async function fetchProducts() {
+  const Snapshot = await getDocs(collection(db, "product"));
+  Snapshot.forEach((doc) => {
+    const product = { id: doc.id, ...doc.data() };
+    productArray.push(product);
+  });
+  renderProducts();
+}
+function renderProducts() {
+  const productContainer = document.getElementById("card");
+  productContainer.innerHTML = "";
+
+  productArray.forEach((product) => {
+    const productCard = document.createElement("div");
+    // productCard.className = "product-card";
+
+    productCard.innerHTML = `
+      <img src="${product.image}" alt="${product.title}">
+      <h2>${product.title}</h2>
+      <p>${product.description}</p>
+      <h3>$${product.price}</h3>
+      <button onclick="updateProduct('${product.id}')">Update</button>
+      <button onclick="deleteProduct('${product.id}')">Delete</button>
+    `;
+
+    productContainer.appendChild(productCard);
+  });
+//   fetchProducts();
+}
+
+//Add Product
+async function addProduct(title, price, description, image) {
+  try {
+    await addDoc(collection(db, "products"), {
+      title,
+      price,
+      description,
+      image,
+    });
+    alert("Product added successfully!");
+    productArray.length = 0; // Reset the array
+    fetchProducts(); // Refresh the products
+  } catch (error) {
+    console.error("Error adding product:", error);
+  }
+}
+//Update Product
+async function updateProduct(id) {
+  const newTitle = prompt("Enter new title:");
+  if (newTitle) {
+    const productDoc = doc(db, "products", id);
+    await updateDoc(productDoc, { title: newTitle });
+    alert("Product updated successfully!");
+    productArray.length = 0; // Reset the array
+    fetchProducts(); // Refresh the products
+  }
+}
+//Delete Product
+async function deleteProduct(id) {
+  const productDoc = doc(db, "products", id);
+  await deleteDoc(productDoc);
+  alert("Product deleted successfully!");
+  productArray.length = 0; // Reset the array
+  fetchProducts(); // Refresh the products
+}
+
+
+document.getElementById("add-product-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+
+  const title = document.getElementById("product-title").value;
+  const price = document.getElementById("product-price").value;
+  const description = document.getElementById("product-description").value;
+  const image = document.getElementById("product-image").value;
+
+  addProduct(title, price, description, image);
+
+  // Clear form fields
+  e.target.reset();
+});
+   
+      </script>
+</body>
+</html>
